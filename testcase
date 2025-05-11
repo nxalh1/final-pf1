@@ -1,0 +1,53 @@
+# testcase.py
+
+from Code import *
+import os
+
+# ----------------------------
+# TEST CASES
+# ----------------------------
+
+def run_test_cases():
+    # Load existing data or initialize
+    customers = load_data('customers.pkl', {})
+    bookings = load_data('bookings.pkl', [])
+
+    # Test Case 1: Add a test user if not exists
+    if "test01" not in customers:
+        test_user = User("test01", "Alice", "alice@example.com", "Visa **** 1234", "0501234567")
+        customers["test01"] = test_user
+        save_data(customers, 'customers.pkl')
+        print("✅ Test Case 1 Passed: Test user created.")
+    else:
+        print("ℹ️ Test Case 1 Skipped: Test user already exists.")
+
+    # Test Case 2: Add a sample ticket and booking
+    if not bookings:
+        test_user = customers["test01"]
+        sample_ticket = Ticket("T001", "VIP", 1000.0)
+        sample_booking = Booking("B001", test_user, sample_ticket, "2025-05-11", None)
+        sample_payment = Payment("P001", sample_booking, 1000.0, "Credit Card", "Paid")
+        sample_booking.payment = sample_payment
+
+        test_user.purchase_history.append(sample_booking)
+        bookings.append(sample_booking)
+
+        save_data(bookings, 'bookings.pkl')
+        save_data(customers, 'customers.pkl')
+        print("✅ Test Case 2 Passed: Booking and payment added.")
+    else:
+        print("ℹ️ Test Case 2 Skipped: Bookings already exist.")
+
+    # Test Case 3: Simulate ticket sales record
+    if not os.path.exists('sales.pkl'):
+        ticket_sales = {"VIP": 1, "Student": 0, "Regular": 0}
+        save_data(ticket_sales, 'sales.pkl')
+        print("✅ Test Case 3 Passed: Ticket sales initialized.")
+    else:
+        print("ℹ️ Test Case 3 Skipped: Sales file already exists.")
+
+# ----------------------------
+# MAIN
+# ----------------------------
+if __name__ == '__main__':
+    run_test_cases()
