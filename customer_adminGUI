@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 
 # --- Helper Functions ---
 def center(win):
+    """Center a Toplevel window on the screen."""
     win.update_idletasks()
     w = win.winfo_width()
     h = win.winfo_height()
@@ -13,28 +14,29 @@ def center(win):
     win.geometry(f"{w}x{h}+{x}+{y}")
 
 # --- Colors and Styles ---
-BG_COLOR = "#3b2e5a"
-BOX_BG = "#4b3f72"
-TEXT_COLOR = "#e0d7f5"
-BUTTON_BG = "#7b5ea6"
-BUTTON_HOVER = "#9a7fc1"
-ACCENT_COLOR = "#b085f5"
+BG_COLOR = "#3b2e5a"       # Main background
+BOX_BG = "#4b3f72"         # Box background
+TEXT_COLOR = "#e0d7f5"     # Light text
+BUTTON_BG = "#7b5ea6"      # Button color
+BUTTON_HOVER = "#9a7fc1"   # Button hover color
+ACCENT_COLOR = "#b085f5"   # Accent
 DISABLED_BTN_BG = "#a499b8"
 TAB_BG = "#5a4b8b"
 
-# --- Data Stores ---
-users = []      # Each: dict with id, username, email, phone, password
-orders = []     # Each: dict with id, user_id, username, date, status, total, tickets, payment
-tickets = []    # Each: dict with id, user_id, type, price, date, section, used
+# --- In-memory Data Stores ---
+users = []      # List of user dicts
+orders = []     # List of order dicts
+tickets = []    # List of ticket dicts
 
 def next_id(prefix, items):
+    """Generate the next unique ID for users, orders, or tickets."""
     if not items:
         return f"{prefix}-1001"
     last = items[-1]['id']
     num = int(last.split('-')[1]) + 1
     return f"{prefix}-{num}"
 
-# --- Main App ---
+# --- Main Application Window ---
 class GrandPrixApp(tk.Tk):
     def _init_(self):
         super()._init_()
@@ -46,59 +48,76 @@ class GrandPrixApp(tk.Tk):
         self.active_admin = None
         self.show_customer_login()
 
+    # --- Navigation Methods ---
     def show_customer_login(self):
+        """Show the customer login screen."""
         self.clear()
         CustomerLogin(self).pack(expand=True, fill="both")
 
     def show_customer_register(self):
+        """Show the customer registration screen."""
         self.clear()
         CustomerRegister(self).pack(expand=True, fill="both")
 
     def show_customer_dashboard(self, user):
+        """Show the customer dashboard after login."""
         self.clear()
         CustomerDashboard(self, user).pack(expand=True, fill="both")
 
     def show_admin_login(self):
+        """Show the admin login screen."""
         self.clear()
         AdminLogin(self).pack(expand=True, fill="both")
 
     def show_admin_register(self):
+        """Show the admin registration screen."""
         self.clear()
         AdminRegister(self).pack(expand=True, fill="both")
 
     def show_admin_dashboard(self, admin_name, admin_level):
+        """Show the admin dashboard after login."""
         self.clear()
         AdminDashboard(self, admin_name, admin_level).pack(expand=True, fill="both")
 
     def clear(self):
+        """Remove all widgets from the root window."""
         for widget in self.winfo_children():
             widget.destroy()
 
-# --- Customer Login/Register ---
+# --- Customer Login Screen ---
 class CustomerLogin(tk.Frame):
     def _init_(self, master):
         super()._init_(master, bg=BG_COLOR)
+        # Title
         tk.Label(self, text="Grand Prix Experience", font=("Segoe UI", 26, "bold"), fg=TEXT_COLOR, bg=BG_COLOR).pack(pady=(40, 10))
+        # Login box
         box = tk.Frame(self, bg=BOX_BG, highlightbackground=ACCENT_COLOR, highlightthickness=2)
         box.pack(pady=30)
+        # Username
         tk.Label(box, text="Username:", font=("Segoe UI", 12), bg=BOX_BG, fg=TEXT_COLOR).grid(row=0, column=0, sticky="e", pady=5, padx=12)
         self.username = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.username.grid(row=0, column=1, pady=5, padx=12)
+        # Password
         tk.Label(box, text="Password:", font=("Segoe UI", 12), bg=BOX_BG, fg=TEXT_COLOR).grid(row=1, column=0, sticky="e", pady=5, padx=12)
         self.password = tk.Entry(box, width=25, show="*", font=("Segoe UI", 11))
         self.password.grid(row=1, column=1, pady=5, padx=12)
+        # Login button
         login_btn = tk.Button(box, text="Login", width=20, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.login, activebackground=BUTTON_HOVER)
         login_btn.grid(row=2, column=0, columnspan=2, pady=14)
+        # Registration link
         tk.Label(self, text="Don't have an account?", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 10)).pack()
         reg_link = tk.Label(self, text="Register", fg=ACCENT_COLOR, bg=BG_COLOR, cursor="hand2", font=("Segoe UI", 10, "underline"))
         reg_link.pack()
         reg_link.bind("<Button-1>", lambda e: master.show_customer_register())
+        # Portal label
         tk.Label(self, text="Customer Ticket Portal", font=("Segoe UI", 14), fg=TEXT_COLOR, bg=BG_COLOR).pack(side="bottom", pady=10)
+        # Admin login link
         admin_link = tk.Label(self, text="Admin Login", fg="#d18aff", bg=BG_COLOR, cursor="hand2", font=("Segoe UI", 10, "underline"))
         admin_link.pack(side="bottom", pady=5)
         admin_link.bind("<Button-1>", lambda e: master.show_admin_login())
 
     def login(self):
+        """Handle customer login and authentication."""
         username = self.username.get().strip()
         password = self.password.get().strip()
         user = next((u for u in users if u['username'] == username and u['password'] == password), None)
@@ -107,37 +126,47 @@ class CustomerLogin(tk.Frame):
         else:
             messagebox.showerror("Login Failed", "Invalid username or password.")
 
+# --- Customer Registration Screen ---
 class CustomerRegister(tk.Frame):
     def _init_(self, master):
         super()._init_(master, bg=BG_COLOR)
         tk.Label(self, text="Register New Account", font=("Segoe UI", 22, "bold"), fg=TEXT_COLOR, bg=BG_COLOR).pack(pady=(40, 10))
         box = tk.Frame(self, bg=BOX_BG, highlightbackground=ACCENT_COLOR, highlightthickness=2)
         box.pack(pady=30)
+        # Username
         tk.Label(box, text="Username:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=0, column=0, sticky="e", pady=5, padx=12)
         self.username = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.username.grid(row=0, column=1, pady=5, padx=12)
+        # Password
         tk.Label(box, text="Password:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=1, column=0, sticky="e", pady=5, padx=12)
         self.password = tk.Entry(box, width=25, show="*", font=("Segoe UI", 11))
         self.password.grid(row=1, column=1, pady=5, padx=12)
+        # Email
         tk.Label(box, text="Email:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=2, column=0, sticky="e", pady=5, padx=12)
         self.email = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.email.grid(row=2, column=1, pady=5, padx=12)
+        # Phone (optional)
         tk.Label(box, text="Phone (optional):", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=3, column=0, sticky="e", pady=5, padx=12)
         self.phone = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.phone.grid(row=3, column=1, pady=5, padx=12)
+        # Register button
         self.register_btn = tk.Button(box, text="Register", width=20, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), state="disabled", command=self.register, activebackground=BUTTON_HOVER)
         self.register_btn.grid(row=4, column=0, columnspan=2, pady=14)
+        # Back to login button
         tk.Button(self, text="Back to Login", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11), command=master.show_customer_login).pack(pady=10)
+        # Enable register button only when all required fields are filled
         for entry in [self.username, self.password, self.email]:
             entry.bind("<KeyRelease>", self.check_fields)
 
     def check_fields(self, event=None):
+        """Enable register button if required fields are filled."""
         if self.username.get().strip() and self.password.get().strip() and self.email.get().strip():
             self.register_btn.config(state="normal")
         else:
             self.register_btn.config(state="disabled")
 
     def register(self):
+        """Create a new user and add to users list."""
         username = self.username.get().strip()
         if any(u['username'] == username for u in users):
             messagebox.showerror("Registration Failed", "Username already exists.")
@@ -153,8 +182,9 @@ class CustomerRegister(tk.Frame):
         self.master.show_customer_login()
         messagebox.showinfo("Registration Successful", "Account created! Please login.")
 
-# --- Customer Dashboard ---
+# --- Customer Dashboard (Buy Tickets, My Orders, My Profile) ---
 class CustomerDashboard(tk.Frame):
+    # Static race and section data
     races = [
         ("Monaco Grand Prix", "07 Jun 2025", 300, "Premium"),
         ("British Grand Prix", "21 Jun 2025", 260, "Standard"),
@@ -167,11 +197,13 @@ class CustomerDashboard(tk.Frame):
     def _init_(self, master, user):
         super()._init_(master, bg=BG_COLOR)
         self.user = user
+        # Dashboard title bar
         bar = tk.Frame(self, bg="#b085f5")
         bar.pack(fill="x")
         tk.Label(bar, text="Customer Dashboard", font=("Segoe UI", 16, "bold"), bg="#b085f5", fg=BG_COLOR).pack(side="left", padx=10, pady=5)
         tk.Label(bar, text=f"Welcome, {user['username']}", bg="#b085f5", fg=BG_COLOR, font=("Segoe UI", 11, "italic")).pack(side="right", padx=10)
         tk.Button(bar, text="Logout", command=master.show_customer_login, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), activebackground=BUTTON_HOVER).pack(side="right", padx=10)
+        # Tabs
         style = ttk.Style()
         style.theme_use('default')
         style.configure('TNotebook.Tab', background=TAB_BG, foreground=TEXT_COLOR, font=("Segoe UI", 11, "bold"), padding=[10, 8])
@@ -184,33 +216,41 @@ class CustomerDashboard(tk.Frame):
         tabs.add(self.buy_tab, text="Buy Tickets")
         tabs.add(self.orders_tab, text="My Orders")
         tabs.add(self.profile_tab, text="My Profile")
+        # Build tab contents
         self.build_buy_tab()
         self.build_orders_tab()
         self.build_profile_tab()
 
+    # --- Buy Tickets Tab ---
     def build_buy_tab(self):
         f = self.buy_tab
         tk.Label(f, text="Purchase Tickets", font=("Segoe UI", 14, "bold"), bg=BG_COLOR, fg=TEXT_COLOR).pack(pady=10)
         form = tk.Frame(f, bg=BG_COLOR)
         form.pack(pady=5)
+        # Ticket type dropdown
         tk.Label(form, text="Select Ticket Type:", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=0, column=0, sticky="e", pady=6)
         self.ticket_type = ttk.Combobox(form, values=["Single Race", "Season Package"], state="readonly", width=20, font=("Segoe UI", 11))
         self.ticket_type.grid(row=0, column=1, pady=6)
         self.ticket_type.current(0)
+        # Race dropdown
         tk.Label(form, text="Select Race:", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=1, column=0, sticky="e", pady=6)
         self.race_var = tk.StringVar()
         self.race_menu = ttk.Combobox(form, textvariable=self.race_var, width=40, font=("Segoe UI", 11))
         self.race_menu['values'] = [f"{r[0]} - {r[1]} - ${r[2]:.2f} ({r[3]})" for r in self.races]
         self.race_menu.current(0)
         self.race_menu.grid(row=1, column=1, pady=6)
+        # Venue section dropdown
         tk.Label(form, text="Venue Section:", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=2, column=0, sticky="e", pady=6)
         self.section_var = tk.StringVar(value=self.sections[0])
         self.section_menu = ttk.Combobox(form, textvariable=self.section_var, values=self.sections, width=20, font=("Segoe UI", 11))
         self.section_menu.grid(row=2, column=1, pady=6)
+        # Quantity spinner
         tk.Label(form, text="Quantity:", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=3, column=0, sticky="e", pady=6)
         self.qty_spin = tk.Spinbox(form, from_=1, to=10, width=5, font=("Segoe UI", 11))
         self.qty_spin.grid(row=3, column=1, sticky="w", pady=6)
+        # Add to cart button
         tk.Button(form, text="Add to Cart", width=18, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.add_to_cart, activebackground=BUTTON_HOVER).grid(row=4, column=0, columnspan=2, pady=14)
+        # Order summary
         summary = tk.LabelFrame(f, text="Order Summary", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 12, "bold"))
         summary.pack(pady=10, padx=30, fill="x")
         self.summary_label = tk.Label(summary, text="Selected Tickets: None", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11))
@@ -226,6 +266,7 @@ class CustomerDashboard(tk.Frame):
         self.total = 0.0
 
     def add_to_cart(self):
+        """Add selected tickets to the cart (in-memory only)."""
         ttype = self.ticket_type.get()
         if ttype == "Single Race":
             race_idx = self.race_menu.current()
@@ -247,6 +288,7 @@ class CustomerDashboard(tk.Frame):
             self.price_label.config(text=f"Total Price: ${price:.2f}")
 
     def complete_purchase(self):
+        """Create order and tickets, update all lists."""
         if not self.cart:
             messagebox.showwarning("No Tickets", "Add tickets to cart first.")
             return
@@ -285,6 +327,7 @@ class CustomerDashboard(tk.Frame):
         self.price_label.config(text="Total Price: $0.00")
         self.build_orders_tab()  # Refresh orders
 
+    # --- My Orders Tab ---
     def build_orders_tab(self):
         f = self.orders_tab
         for widget in f.winfo_children():
@@ -302,6 +345,7 @@ class CustomerDashboard(tk.Frame):
         tk.Button(f, text="Refresh Orders", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.build_orders_tab).pack(anchor="e", padx=30, pady=8)
 
     def show_order_details(self, event):
+        """Show a popup with order details."""
         item = self.orders_tree.selection()
         if not item:
             return
@@ -326,6 +370,7 @@ class CustomerDashboard(tk.Frame):
         tk.Button(win, text="Close", command=win.destroy, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold")).pack(side="right", padx=20, pady=10)
         center(win)
 
+    # --- My Profile Tab ---
     def build_profile_tab(self):
         f = self.profile_tab
         for widget in f.winfo_children():
@@ -334,6 +379,7 @@ class CustomerDashboard(tk.Frame):
         tk.Label(f, text=f"Username: {self.user['username']}", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).pack(anchor="w", padx=30)
         tk.Label(f, text=f"Email: {self.user['email']}", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).pack(anchor="w", padx=30)
         tk.Label(f, text=f"Phone: {self.user['phone'] or 'N/A'}", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).pack(anchor="w", padx=30)
+        # Change password section (not functional, demo only)
         pw_frame = tk.LabelFrame(f, text="Change Password", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 12, "bold"))
         pw_frame.pack(pady=15, padx=30, fill="x")
         tk.Label(pw_frame, text="Current Password:", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=0, column=0, sticky="e", pady=6, padx=10)
@@ -347,7 +393,7 @@ class CustomerDashboard(tk.Frame):
         tk.Button(btn_frame, text="Update Profile", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold")).pack(side="left", padx=10)
         tk.Button(btn_frame, text="Change Password", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold")).pack(side="left", padx=10)
 
-# --- Admin Login/Register ---
+# --- Admin Login Screen ---
 class AdminLogin(tk.Frame):
     def _init_(self, master):
         super()._init_(master, bg=BG_COLOR)
@@ -355,79 +401,97 @@ class AdminLogin(tk.Frame):
         tk.Label(self, text="Admin Management Portal", font=("Segoe UI", 16), fg=TEXT_COLOR, bg=BG_COLOR).pack()
         box = tk.Frame(self, bg=BOX_BG, highlightbackground=ACCENT_COLOR, highlightthickness=2)
         box.pack(pady=30)
+        # Admin username
         tk.Label(box, text="Admin Username:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=0, column=0, sticky="e", pady=5, padx=12)
         self.username = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.username.grid(row=0, column=1, pady=5, padx=12)
+        # Admin password
         tk.Label(box, text="Admin Password:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=1, column=0, sticky="e", pady=5, padx=12)
         self.password = tk.Entry(box, width=25, show="*", font=("Segoe UI", 11))
         self.password.grid(row=1, column=1, pady=5, padx=12)
+        # Login button
         login_btn = tk.Button(box, text="Login as Admin", width=20, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.login, activebackground=BUTTON_HOVER)
         login_btn.grid(row=2, column=0, columnspan=2, pady=14)
+        # Registration link
         tk.Label(self, text="New Admin?", bg=BG_COLOR, fg=TEXT_COLOR, font=("Segoe UI", 10)).pack()
         reg_link = tk.Label(self, text="Register Admin Account", fg="#d18aff", bg=BG_COLOR, cursor="hand2", font=("Segoe UI", 10, "underline"))
         reg_link.pack()
         reg_link.bind("<Button-1>", lambda e: master.show_admin_register())
+        # Customer login link
         cust_link = tk.Label(self, text="Customer Login", fg=ACCENT_COLOR, bg=BG_COLOR, cursor="hand2", font=("Segoe UI", 10, "underline"))
         cust_link.pack(pady=5)
         cust_link.bind("<Button-1>", lambda e: master.show_customer_login())
 
     def login(self):
+        """Demo: any admin username and password accepted."""
         username = self.username.get().strip()
         password = self.password.get().strip()
         if not username:
             messagebox.showerror("Login Failed", "Please enter an admin username.")
             return
-        # For demo, any username is accepted, password is not checked
         self.master.show_admin_dashboard(username, 3)
 
+# --- Admin Registration Screen ---
 class AdminRegister(tk.Frame):
     def _init_(self, master):
         super()._init_(master, bg=BG_COLOR)
         tk.Label(self, text="Register Admin Account", font=("Segoe UI", 22, "bold"), fg=TEXT_COLOR, bg=BG_COLOR).pack(pady=(40, 10))
         box = tk.Frame(self, bg=BOX_BG, highlightbackground=ACCENT_COLOR, highlightthickness=2)
         box.pack(pady=30)
+        # Registration code
         tk.Label(box, text="Admin Registration Code:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=0, column=0, sticky="e", pady=5, padx=12)
         self.code = tk.Entry(box, width=25, show="*", font=("Segoe UI", 11))
         self.code.grid(row=0, column=1, pady=5, padx=12)
+        # Username
         tk.Label(box, text="Username:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=1, column=0, sticky="e", pady=5, padx=12)
         self.username = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.username.grid(row=1, column=1, pady=5, padx=12)
+        # Password
         tk.Label(box, text="Password:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=2, column=0, sticky="e", pady=5, padx=12)
         self.password = tk.Entry(box, width=25, show="*", font=("Segoe UI", 11))
         self.password.grid(row=2, column=1, pady=5, padx=12)
+        # Email
         tk.Label(box, text="Email:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=3, column=0, sticky="e", pady=5, padx=12)
         self.email = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.email.grid(row=3, column=1, pady=5, padx=12)
+        # Phone (optional)
         tk.Label(box, text="Phone (optional):", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=4, column=0, sticky="e", pady=5, padx=12)
         self.phone = tk.Entry(box, width=25, font=("Segoe UI", 11))
         self.phone.grid(row=4, column=1, pady=5, padx=12)
+        # Admin level
         tk.Label(box, text="Admin Level (1-3):", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=5, column=0, sticky="e", pady=5, padx=12)
         self.level = tk.Spinbox(box, from_=1, to=3, width=5, font=("Segoe UI", 11))
         self.level.grid(row=5, column=1, pady=5, padx=12, sticky="w")
+        # Department
         tk.Label(box, text="Department:", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11)).grid(row=6, column=0, sticky="e", pady=5, padx=12)
         self.dept = ttk.Combobox(box, values=["System Administration", "Ticket Sales", "Customer Support"], state="readonly", width=22, font=("Segoe UI", 11))
         self.dept.grid(row=6, column=1, pady=5, padx=12)
         self.dept.current(0)
+        # Register button
         tk.Button(box, text="Register Admin", width=20, bg="#b85ef5", fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.register, activebackground=BUTTON_HOVER).grid(row=7, column=0, columnspan=2, pady=14)
+        # Back to login button
         tk.Button(self, text="Back to Login", bg=BOX_BG, fg=TEXT_COLOR, font=("Segoe UI", 11), command=master.show_admin_login).pack()
 
     def register(self):
+        """Require code NFA123 for admin registration."""
         if self.code.get() != "NFA123":
             messagebox.showerror("Error", "Invalid admin registration code!")
             return
         self.master.show_admin_login()
         messagebox.showinfo("Registration Successful", "Admin account created! Please login.")
 
-# --- Admin Dashboard ---
+# --- Admin Dashboard (Dashboard, Users, Tickets, Orders, Admin Management) ---
 class AdminDashboard(tk.Frame):
     def _init_(self, master, admin_name, admin_level):
         super()._init_(master, bg=BG_COLOR)
+        # Dashboard title bar
         bar = tk.Frame(self, bg="#7b5ea6")
         bar.pack(fill="x")
         tk.Label(bar, text="Admin Dashboard", font=("Segoe UI", 16, "bold"), bg="#7b5ea6", fg=TEXT_COLOR).pack(side="left", padx=10, pady=5)
         tk.Button(bar, text="Reload Data", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.refresh_all).pack(side="right", padx=10)
         tk.Button(bar, text="Logout", command=master.show_admin_login, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold")).pack(side="right", padx=10)
         tk.Label(bar, text=f"Admin: {admin_name} (Level {admin_level})", bg="#7b5ea6", fg=TEXT_COLOR, font=("Segoe UI", 11, "italic")).pack(side="right", padx=10)
+        # Tabs
         style = ttk.Style()
         style.theme_use('default')
         style.configure('TNotebook.Tab', background=TAB_BG, foreground=TEXT_COLOR, font=("Segoe UI", 11, "bold"), padding=[10, 8])
@@ -444,6 +508,7 @@ class AdminDashboard(tk.Frame):
         tabs.add(self.tickets_tab, text="Tickets")
         tabs.add(self.orders_tab, text="Orders")
         tabs.add(self.admins_tab, text="Admin Management")
+        # Build tab contents
         self.build_dashboard_tab()
         self.build_users_tab()
         self.build_tickets_tab()
@@ -451,17 +516,20 @@ class AdminDashboard(tk.Frame):
         self.build_admins_tab()
 
     def refresh_all(self):
+        """Refresh all admin dashboard tabs."""
         self.build_dashboard_tab()
         self.build_users_tab()
         self.build_tickets_tab()
         self.build_orders_tab()
         self.build_admins_tab()
 
+    # --- Dashboard Tab ---
     def build_dashboard_tab(self):
         f = self.dashboard_tab
         for widget in f.winfo_children():
             widget.destroy()
         tk.Label(f, text="Welcome to the Admin Dashboard.", font=("Segoe UI", 14, "bold"), bg=BG_COLOR, fg=TEXT_COLOR).pack(pady=10)
+        # Summary tiles
         tile_frame = tk.Frame(f, bg=BG_COLOR)
         tile_frame.pack(pady=10)
         for title, value, color in [
@@ -475,6 +543,7 @@ class AdminDashboard(tk.Frame):
             t.pack_propagate(False)
             tk.Label(t, text=title, font=("Segoe UI", 11, "bold"), bg=color, fg=BG_COLOR).pack()
             tk.Label(t, text=value, font=("Segoe UI", 16, "bold"), bg=color, fg=BG_COLOR).pack()
+        # Recent orders table
         tk.Label(f, text="Recent Orders", font=("Segoe UI", 12, "bold"), bg=BG_COLOR, fg=TEXT_COLOR).pack(pady=10)
         columns = ("ID", "Date", "User", "Status", "Total")
         tree = ttk.Treeview(f, columns=columns, show="headings", height=4)
@@ -486,6 +555,7 @@ class AdminDashboard(tk.Frame):
             tree.insert("", "end", values=(o['id'], o['date'], o['username'], o['status'], o['total']))
         tk.Button(f, text="Refresh Dashboard", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.build_dashboard_tab).pack(anchor="e", padx=30, pady=10)
 
+    # --- Users Tab ---
     def build_users_tab(self):
         f = self.users_tab
         for widget in f.winfo_children():
@@ -503,6 +573,7 @@ class AdminDashboard(tk.Frame):
         tk.Button(f, text="Refresh Users", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.build_users_tab).pack(side="left", padx=30, pady=10)
         tk.Button(f, text="Export Users Data", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold")).pack(side="left", padx=10, pady=10)
 
+    # --- Tickets Tab ---
     def build_tickets_tab(self):
         f = self.tickets_tab
         for widget in f.winfo_children():
@@ -518,6 +589,7 @@ class AdminDashboard(tk.Frame):
             tree.insert("", "end", values=(tkt['id'], tkt['type'], f"${tkt['price']:.2f}", tkt['date'], tkt['section'], tkt['used']))
         tk.Button(f, text="Refresh Tickets", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.build_tickets_tab).pack(anchor="e", padx=30, pady=10)
 
+    # --- Orders Tab ---
     def build_orders_tab(self):
         f = self.orders_tab
         for widget in f.winfo_children():
@@ -535,6 +607,7 @@ class AdminDashboard(tk.Frame):
         tk.Button(f, text="Refresh Orders", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.build_orders_tab).pack(anchor="e", padx=30, pady=10)
 
     def show_order_details(self, event):
+        """Show order details popup for admins."""
         item = self.orders_tree.selection()
         if not item:
             return
@@ -559,6 +632,7 @@ class AdminDashboard(tk.Frame):
         tk.Button(win, text="Close", command=win.destroy, bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold")).pack(side="right", padx=20, pady=10)
         center(win)
 
+    # --- Admin Management Tab (Demo Data) ---
     def build_admins_tab(self):
         f = self.admins_tab
         for widget in f.winfo_children():
@@ -570,6 +644,7 @@ class AdminDashboard(tk.Frame):
             tree.heading(col, text=col)
             tree.column(col, width=100)
         tree.pack(padx=20, fill="x")
+        # Demo admin accounts
         tree.insert("", "end", values=("ADM-001", "admin", "admin@grandprix.com", "3", "System Administration", "N/A"))
         tree.insert("", "end", values=("ADM-002", "manager", "manager@grandprix.com", "2", "Ticket Sales", "555-6789"))
         tree.insert("", "end", values=("ADM-003", "support", "support@grandprix.com", "1", "Customer Support", "555-4321"))
@@ -579,6 +654,7 @@ class AdminDashboard(tk.Frame):
         tk.Button(btn_frame, text="Add New Admin", bg=BUTTON_BG, fg=TEXT_COLOR, font=("Segoe UI", 11, "bold"), command=self.add_admin).pack(side="left", padx=10)
 
     def add_admin(self):
+        """Show a popup for adding a new admin (demo only, not functional)."""
         win = tk.Toplevel(self)
         win.title("Add New Admin")
         win.geometry("350x350")
