@@ -1,109 +1,116 @@
 from datetime import datetime
 from typing import List
 
+# Base user class
 class User:
     def __init__(self, user_id: str, name: str, email: str, password: str, is_active: bool = True):
-        self.user_id = user_id
-        self.name = name
-        self.email = email
-        self.password = password
-        self.is_active = is_active
+        self.user_id = user_id          # unique identifier
+        self.name = name                # user's full name
+        self.email = email              # user's email address
+        self.password = password        # user's password (should be hashed!)
+        self.is_active = is_active      # whether the account is active
 
     def get_user_id(self) -> str:
-        return self.user_id
+        return self.user_id             # return the user ID
 
     def set_user_id(self, user_id: str):
-        self.user_id = user_id
+        self.user_id = user_id          # update the user ID
 
     def get_name(self) -> str:
-        return self.name
+        return self.name                # return the name
 
     def set_name(self, name: str):
-        self.name = name
+        self.name = name                # update the name
 
     def get_email(self) -> str:
-        return self.email
+        return self.email               # return the email
 
     def set_email(self, email: str):
-        self.email = email
+        self.email = email              # update the email
 
     def get_password(self) -> str:
-        return self.password
+        return self.password            # return the password
 
     def set_password(self, password: str):
-        self.password = password
+        self.password = password        # update the password
 
     def is_active(self) -> bool:
-        return self.is_active
+        return self.is_active           # check if account is active
 
     def set_active(self, is_active: bool):
-        self.is_active = is_active
+        self.is_active = is_active      # activate or deactivate account
 
     def __str__(self) -> str:
+        # readable representation of a User
         return f"User({self.user_id}, {self.name}, {self.email}, Active={self.is_active})"
 
 
+# Customer inherits from User, adding phone, loyalty points, and orders
 class Customer(User):
     def __init__(self, user_id: str, name: str, email: str, password: str, is_active: bool = True,
                  phone: str = "", loyalty_points: int = 0, orders: List['Order'] = None):
         super().__init__(user_id, name, email, password, is_active)
-        self.phone = phone
-        self.loyalty_points = loyalty_points
-        self.orders = orders if orders is not None else []
+        self.phone = phone                      # customer's phone number
+        self.loyalty_points = loyalty_points    # reward points
+        self.orders = orders if orders is not None else []  # list of past orders
 
     def get_phone(self) -> str:
-        return self.phone
+        return self.phone                     # return phone
 
     def set_phone(self, phone: str):
-        self.phone = phone
+        self.phone = phone                    # update phone
 
     def get_loyalty_points(self) -> int:
-        return self.loyalty_points
+        return self.loyalty_points            # return points
 
     def set_loyalty_points(self, points: int):
-        self.loyalty_points = points
+        self.loyalty_points = points          # update points
 
     def get_orders(self) -> List['Order']:
-        return self.orders
+        return self.orders                    # return list of orders
 
     def add_order(self, order: 'Order') -> None:
-        self.orders.append(order)
+        self.orders.append(order)             # add a new order
 
     def __str__(self) -> str:
+        # readable representation of a Customer
         return f"Customer({self.user_id}, {self.name}, Phone={self.phone}, Points={self.loyalty_points})"
 
 
+# Admin inherits from User, adding a role and last login timestamp
 class Admin(User):
     def __init__(self, user_id: str, name: str, email: str, password: str, is_active: bool = True,
                  role: str = "", last_login: datetime = None):
         super().__init__(user_id, name, email, password, is_active)
-        self.role = role
-        self.last_login = last_login
+        self.role = role                  # admin role (e.g., "superuser")
+        self.last_login = last_login      # last login time
 
     def get_role(self) -> str:
-        return self.role
+        return self.role                  # return role
 
     def set_role(self, role: str):
-        self.role = role
+        self.role = role                  # update role
 
     def get_last_login(self) -> datetime:
-        return self.last_login
+        return self.last_login            # return last login
 
     def set_last_login(self, last_login: datetime):
-        self.last_login = last_login
+        self.last_login = last_login      # update last login
 
     def __str__(self) -> str:
+        # readable representation of an Admin
         return f"Admin({self.user_id}, {self.name}, Role={self.role}, LastLogin={self.last_login})"
 
 
+# Represents an event with tickets
 class Event:
     def __init__(self, event_id: str, name: str, location: str, date: datetime, capacity: int):
-        self.event_id = event_id
-        self.name = name
-        self.location = location
-        self.date = date
-        self.capacity = capacity
-        self.tickets: List[Ticket] = []
+        self.event_id = event_id          # unique event ID
+        self.name = name                  # event name
+        self.location = location          # where it takes place
+        self.date = date                  # when it happens
+        self.capacity = capacity          # max number of tickets
+        self.tickets: List['Ticket'] = [] # list of tickets sold
 
     def get_event_id(self) -> str:
         return self.event_id
@@ -139,6 +146,7 @@ class Event:
         return self.tickets
 
     def add_ticket(self, ticket: 'Ticket') -> None:
+        # only add if capacity not reached
         if len(self.tickets) < self.capacity:
             self.tickets.append(ticket)
         else:
@@ -148,16 +156,17 @@ class Event:
         return f"Event({self.event_id}, {self.name}, {self.location}, Date={self.date}, Capacity={self.capacity})"
 
 
+# Base ticket class
 class Ticket:
     def __init__(self, ticket_id: str, type_: str, price: float, validity: str = "", available: bool = True,
                  event: Event = None, discount: 'Discount' = None):
-        self.ticket_id = ticket_id
-        self.type = type_
-        self.price = price
-        self.validity = validity
-        self.available = available
-        self.event = event
-        self.discount = discount
+        self.ticket_id = ticket_id        # unique ticket ID
+        self.type = type_                 # ticket category (e.g., "Season")
+        self.price = price                # ticket price
+        self.validity = validity          # validity period
+        self.available = available        # is it still for sale?
+        self.event = event                # linked event
+        self.discount = discount          # any discount applied
 
     def get_ticket_id(self) -> str:
         return self.ticket_id
@@ -205,11 +214,13 @@ class Ticket:
         return f"Ticket({self.ticket_id}, Type={self.type}, Price={self.price}, Available={self.available})"
 
 
+# Season ticket inherits from Ticket
 class SeasonTicket(Ticket):
-    def __init__(self, ticket_id: str, price: float, validity: str, duration: str, perks: str, available: bool = True, event: Event = None, discount: 'Discount' = None):
+    def __init__(self, ticket_id: str, price: float, validity: str, duration: str, perks: str,
+                 available: bool = True, event: Event = None, discount: 'Discount' = None):
         super().__init__(ticket_id, "Season", price, validity, available, event, discount)
-        self.duration = duration
-        self.perks = perks
+        self.duration = duration            # length of season
+        self.perks = perks                  # extra benefits
 
     def get_duration(self) -> str:
         return self.duration
@@ -227,11 +238,13 @@ class SeasonTicket(Ticket):
         return f"SeasonTicket({self.ticket_id}, Duration={self.duration}, Perks={self.perks})"
 
 
+# Weekend package ticket
 class WeekendPackage(Ticket):
-    def __init__(self, ticket_id: str, price: float, validity: str, includes_days: int, hotel_included: bool, available: bool = True, event: Event = None, discount: 'Discount' = None):
+    def __init__(self, ticket_id: str, price: float, validity: str, includes_days: int, hotel_included: bool,
+                 available: bool = True, event: Event = None, discount: 'Discount' = None):
         super().__init__(ticket_id, "Weekend", price, validity, available, event, discount)
-        self.includes_days = includes_days
-        self.hotel_included = hotel_included
+        self.includes_days = includes_days      # number of days covered
+        self.hotel_included = hotel_included    # whether hotel is included
 
     def get_includes_days(self) -> int:
         return self.includes_days
@@ -249,11 +262,13 @@ class WeekendPackage(Ticket):
         return f"WeekendPackage({self.ticket_id}, Days={self.includes_days}, HotelIncluded={self.hotel_included})"
 
 
+# Single race pass ticket
 class SingleRacePass(Ticket):
-    def __init__(self, ticket_id: str, price: float, validity: str, race_location: str, seat_number: str, available: bool = True, event: Event = None, discount: 'Discount' = None):
+    def __init__(self, ticket_id: str, price: float, validity: str, race_location: str, seat_number: str,
+                 available: bool = True, event: Event = None, discount: 'Discount' = None):
         super().__init__(ticket_id, "SingleRacePass", price, validity, available, event, discount)
-        self.race_location = race_location
-        self.seat_number = seat_number
+        self.race_location = race_location    # where the race is held
+        self.seat_number = seat_number        # assigned seat
 
     def get_race_location(self) -> str:
         return self.race_location
@@ -271,11 +286,13 @@ class SingleRacePass(Ticket):
         return f"SingleRacePass({self.ticket_id}, Location={self.race_location}, Seat={self.seat_number})"
 
 
+# Group ticket for multiple attendees
 class GroupTicket(Ticket):
-    def __init__(self, ticket_id: str, price: float, validity: str, group_size: int, group_discount: float, available: bool = True, event: Event = None, discount: 'Discount' = None):
+    def __init__(self, ticket_id: str, price: float, validity: str, group_size: int, group_discount: float,
+                 available: bool = True, event: Event = None, discount: 'Discount' = None):
         super().__init__(ticket_id, "Group", price, validity, available, event, discount)
-        self.group_size = group_size
-        self.group_discount = group_discount
+        self.group_size = group_size          # number in the group
+        self.group_discount = group_discount  # discount percentage
 
     def get_group_size(self) -> int:
         return self.group_size
@@ -293,13 +310,14 @@ class GroupTicket(Ticket):
         return f"GroupTicket({self.ticket_id}, Size={self.group_size}, Discount={self.group_discount})"
 
 
+# Discount details for tickets
 class Discount:
     def __init__(self, discount_id: str, type_: str, percentage: float, valid_from: datetime, valid_until: datetime):
-        self.discount_id = discount_id
-        self.type = type_
-        self.percentage = percentage
-        self.valid_from = valid_from
-        self.valid_until = valid_until
+        self.discount_id = discount_id    # unique discount ID
+        self.type = type_                 # e.g., "EarlyBird"
+        self.percentage = percentage      # discount rate
+        self.valid_from = valid_from      # start date
+        self.valid_until = valid_until    # end date
 
     def get_discount_id(self) -> str:
         return self.discount_id
@@ -320,7 +338,18 @@ class Discount:
         self.percentage = percentage
 
     def get_valid_from(self) -> datetime:
-        return self.valid_from
+        return self.valid_from      # return the start date of the discount
 
     def set_valid_from(self, date: datetime):
-        self.valid
+        self.valid_from = date      # update the start date of the discount
+
+    def get_valid_until(self) -> datetime:
+        return self.valid_until      # return the end date of the discount
+
+    def set_valid_until(self, date: datetime):
+        self.valid_until = date      # update the end date of the discount
+
+    def __str__(self) -> str:
+        # readable representation of a Discount
+        return (f"Discount({self.discount_id}, Type={self.type}, "
+                f"{self.percentage}% off, Valid={self.valid_from} to {self.valid_until})")
