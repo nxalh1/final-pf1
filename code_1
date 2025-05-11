@@ -1,0 +1,128 @@
+# Imports
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+import pickle
+import os
+
+# ----------------------------
+# Binary File Handling with Pickle
+# ----------------------------
+# Used to persist customer and ticket booking data between sessions.
+# customers.pkl - Dictionary of User objects keyed by user_id
+# bookings.pkl  - List of Booking objects (each includes Ticket & Payment)
+
+def save_data(data, filename):
+    try:
+        with open(filename, 'wb') as file:
+            pickle.dump(data, file)
+    except pickle.PicklingError as e:
+        messagebox.showerror("Pickle Error", f"Could not save to {filename}:\n{e}")
+    except IOError as e:
+        messagebox.showerror("IO Error", f"File write error:\n{e}")
+
+def load_data(filename, default):
+    if not os.path.exists(filename):
+        return default
+    try:
+        with open(filename, 'rb') as file:
+            return pickle.load(file)
+    except (pickle.UnpicklingError, EOFError, AttributeError, ImportError) as e:
+        messagebox.showerror("Load Error", f"Error reading {filename}:\n{e}")
+        return default
+
+# ----------------------------
+# User Class
+# ----------------------------
+class User:
+    def __init__(self, user_id, name, email, payment_info, contact_number):
+        self.user_id = user_id
+        self.name = name
+        self.email = email
+        self.payment_info = payment_info
+        self.contact_number = contact_number
+        self.purchase_history = []
+
+    def get_user_id(self): return self.user_id
+    def set_user_id(self, user_id): self.user_id = user_id
+    def get_name(self): return self.name
+    def set_name(self, name): self.name = name
+    def get_email(self): return self.email
+    def set_email(self, email): self.email = email
+    def get_payment_info(self): return self.payment_info
+    def set_payment_info(self, payment_info): self.payment_info = payment_info
+    def get_contact_number(self): return self.contact_number
+    def set_contact_number(self, contact_number): self.contact_number = contact_number
+    def get_purchase_history(self): return self.purchase_history
+    def set_purchase_history(self, purchase_history): self.purchase_history = purchase_history
+
+# ----------------------------
+# Ticket Class
+# ----------------------------
+class Ticket:
+    def __init__(self, ticket_id, ticket_type, price):
+        self.ticket_id = ticket_id
+        self.ticket_type = ticket_type
+        self.price = price
+
+    def get_ticket_id(self): return self.ticket_id
+    def set_ticket_id(self, ticket_id): self.ticket_id = ticket_id
+    def get_ticket_type(self): return self.ticket_type
+    def set_ticket_type(self, ticket_type): self.ticket_type = ticket_type
+    def get_price(self): return self.price
+    def set_price(self, price): self.price = price
+
+# ----------------------------
+# Payment Class
+# ----------------------------
+class Payment:
+    def __init__(self, payment_id, booking, amount, payment_method, transaction_status):
+        self.payment_id = payment_id
+        self.booking = booking
+        self.amount = amount
+        self.payment_method = payment_method
+        self.transaction_status = transaction_status
+
+    def get_payment_id(self): return self.payment_id
+    def set_payment_id(self, payment_id): self.payment_id = payment_id
+    def get_booking(self): return self.booking
+    def set_booking(self, booking): self.booking = booking
+    def get_amount(self): return self.amount
+    def set_amount(self, amount): self.amount = amount
+    def get_payment_method(self): return self.payment_method
+    def set_payment_method(self, payment_method): self.payment_method = payment_method
+    def get_transaction_status(self): return self.transaction_status
+    def set_transaction_status(self, transaction_status): self.transaction_status = transaction_status
+
+# ----------------------------
+# Booking Class
+# ----------------------------
+class Booking:
+    def __init__(self, booking_id, user, ticket, date, payment):
+        self.booking_id = booking_id
+        self.user = user
+        self.ticket = ticket
+        self.date = date
+        self.payment = payment
+
+    def get_booking_id(self): return self.booking_id
+    def set_booking_id(self, booking_id): self.booking_id = booking_id
+    def get_user(self): return self.user
+    def set_user(self, user): self.user = user
+    def get_ticket(self): return self.ticket
+    def set_ticket(self, ticket): self.ticket = ticket
+    def get_date(self): return self.date
+    def set_date(self, date): self.date = date
+    def get_payment(self): return self.payment
+    def set_payment(self, payment): self.payment = payment
+
+# ----------------------------
+# GUI Application Class
+# ----------------------------
+class TicketingSystemGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("F1 Ticketing System")
+        self.root.geometry("800x600")
+
+        # Load or initialize data stores
+        self.customers = load_data_
