@@ -1,128 +1,326 @@
-# Imports
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
-import pickle
-import os
+from datetime import datetime
+from typing import List
 
-# ----------------------------
-# Binary File Handling with Pickle
-# ----------------------------
-# Used to persist customer and ticket booking data between sessions.
-# customers.pkl - Dictionary of User objects keyed by user_id
-# bookings.pkl  - List of Booking objects (each includes Ticket & Payment)
-
-def save_data(data, filename):
-    try:
-        with open(filename, 'wb') as file:
-            pickle.dump(data, file)
-    except pickle.PicklingError as e:
-        messagebox.showerror("Pickle Error", f"Could not save to {filename}:\n{e}")
-    except IOError as e:
-        messagebox.showerror("IO Error", f"File write error:\n{e}")
-
-def load_data(filename, default):
-    if not os.path.exists(filename):
-        return default
-    try:
-        with open(filename, 'rb') as file:
-            return pickle.load(file)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ImportError) as e:
-        messagebox.showerror("Load Error", f"Error reading {filename}:\n{e}")
-        return default
-
-# ----------------------------
-# User Class
-# ----------------------------
 class User:
-    def __init__(self, user_id, name, email, payment_info, contact_number):
+    def __init__(self, user_id: str, name: str, email: str, password: str, is_active: bool = True):
         self.user_id = user_id
         self.name = name
         self.email = email
-        self.payment_info = payment_info
-        self.contact_number = contact_number
-        self.purchase_history = []
+        self.password = password
+        self.is_active = is_active
 
-    def get_user_id(self): return self.user_id
-    def set_user_id(self, user_id): self.user_id = user_id
-    def get_name(self): return self.name
-    def set_name(self, name): self.name = name
-    def get_email(self): return self.email
-    def set_email(self, email): self.email = email
-    def get_payment_info(self): return self.payment_info
-    def set_payment_info(self, payment_info): self.payment_info = payment_info
-    def get_contact_number(self): return self.contact_number
-    def set_contact_number(self, contact_number): self.contact_number = contact_number
-    def get_purchase_history(self): return self.purchase_history
-    def set_purchase_history(self, purchase_history): self.purchase_history = purchase_history
+    def get_user_id(self) -> str:
+        return self.user_id
 
-# ----------------------------
-# Ticket Class
-# ----------------------------
+    def set_user_id(self, user_id: str):
+        self.user_id = user_id
+
+    def get_name(self) -> str:
+        return self.name
+
+    def set_name(self, name: str):
+        self.name = name
+
+    def get_email(self) -> str:
+        return self.email
+
+    def set_email(self, email: str):
+        self.email = email
+
+    def get_password(self) -> str:
+        return self.password
+
+    def set_password(self, password: str):
+        self.password = password
+
+    def is_active(self) -> bool:
+        return self.is_active
+
+    def set_active(self, is_active: bool):
+        self.is_active = is_active
+
+    def __str__(self) -> str:
+        return f"User({self.user_id}, {self.name}, {self.email}, Active={self.is_active})"
+
+
+class Customer(User):
+    def __init__(self, user_id: str, name: str, email: str, password: str, is_active: bool = True,
+                 phone: str = "", loyalty_points: int = 0, orders: List['Order'] = None):
+        super().__init__(user_id, name, email, password, is_active)
+        self.phone = phone
+        self.loyalty_points = loyalty_points
+        self.orders = orders if orders is not None else []
+
+    def get_phone(self) -> str:
+        return self.phone
+
+    def set_phone(self, phone: str):
+        self.phone = phone
+
+    def get_loyalty_points(self) -> int:
+        return self.loyalty_points
+
+    def set_loyalty_points(self, points: int):
+        self.loyalty_points = points
+
+    def get_orders(self) -> List['Order']:
+        return self.orders
+
+    def add_order(self, order: 'Order') -> None:
+        self.orders.append(order)
+
+    def __str__(self) -> str:
+        return f"Customer({self.user_id}, {self.name}, Phone={self.phone}, Points={self.loyalty_points})"
+
+
+class Admin(User):
+    def __init__(self, user_id: str, name: str, email: str, password: str, is_active: bool = True,
+                 role: str = "", last_login: datetime = None):
+        super().__init__(user_id, name, email, password, is_active)
+        self.role = role
+        self.last_login = last_login
+
+    def get_role(self) -> str:
+        return self.role
+
+    def set_role(self, role: str):
+        self.role = role
+
+    def get_last_login(self) -> datetime:
+        return self.last_login
+
+    def set_last_login(self, last_login: datetime):
+        self.last_login = last_login
+
+    def __str__(self) -> str:
+        return f"Admin({self.user_id}, {self.name}, Role={self.role}, LastLogin={self.last_login})"
+
+
+class Event:
+    def __init__(self, event_id: str, name: str, location: str, date: datetime, capacity: int):
+        self.event_id = event_id
+        self.name = name
+        self.location = location
+        self.date = date
+        self.capacity = capacity
+        self.tickets: List[Ticket] = []
+
+    def get_event_id(self) -> str:
+        return self.event_id
+
+    def set_event_id(self, event_id: str):
+        self.event_id = event_id
+
+    def get_name(self) -> str:
+        return self.name
+
+    def set_name(self, name: str):
+        self.name = name
+
+    def get_location(self) -> str:
+        return self.location
+
+    def set_location(self, location: str):
+        self.location = location
+
+    def get_date(self) -> datetime:
+        return self.date
+
+    def set_date(self, date: datetime):
+        self.date = date
+
+    def get_capacity(self) -> int:
+        return self.capacity
+
+    def set_capacity(self, capacity: int):
+        self.capacity = capacity
+
+    def get_tickets(self) -> List['Ticket']:
+        return self.tickets
+
+    def add_ticket(self, ticket: 'Ticket') -> None:
+        if len(self.tickets) < self.capacity:
+            self.tickets.append(ticket)
+        else:
+            raise ValueError("Event capacity reached")
+
+    def __str__(self) -> str:
+        return f"Event({self.event_id}, {self.name}, {self.location}, Date={self.date}, Capacity={self.capacity})"
+
+
 class Ticket:
-    def __init__(self, ticket_id, ticket_type, price):
+    def __init__(self, ticket_id: str, type_: str, price: float, validity: str = "", available: bool = True,
+                 event: Event = None, discount: 'Discount' = None):
         self.ticket_id = ticket_id
-        self.ticket_type = ticket_type
+        self.type = type_
+        self.price = price
+        self.validity = validity
+        self.available = available
+        self.event = event
+        self.discount = discount
+
+    def get_ticket_id(self) -> str:
+        return self.ticket_id
+
+    def set_ticket_id(self, ticket_id: str):
+        self.ticket_id = ticket_id
+
+    def get_type(self) -> str:
+        return self.type
+
+    def set_type(self, type_: str):
+        self.type = type_
+
+    def get_price(self) -> float:
+        return self.price
+
+    def set_price(self, price: float):
         self.price = price
 
-    def get_ticket_id(self): return self.ticket_id
-    def set_ticket_id(self, ticket_id): self.ticket_id = ticket_id
-    def get_ticket_type(self): return self.ticket_type
-    def set_ticket_type(self, ticket_type): self.ticket_type = ticket_type
-    def get_price(self): return self.price
-    def set_price(self, price): self.price = price
+    def get_validity(self) -> str:
+        return self.validity
 
-# ----------------------------
-# Payment Class
-# ----------------------------
-class Payment:
-    def __init__(self, payment_id, booking, amount, payment_method, transaction_status):
-        self.payment_id = payment_id
-        self.booking = booking
-        self.amount = amount
-        self.payment_method = payment_method
-        self.transaction_status = transaction_status
+    def set_validity(self, validity: str):
+        self.validity = validity
 
-    def get_payment_id(self): return self.payment_id
-    def set_payment_id(self, payment_id): self.payment_id = payment_id
-    def get_booking(self): return self.booking
-    def set_booking(self, booking): self.booking = booking
-    def get_amount(self): return self.amount
-    def set_amount(self, amount): self.amount = amount
-    def get_payment_method(self): return self.payment_method
-    def set_payment_method(self, payment_method): self.payment_method = payment_method
-    def get_transaction_status(self): return self.transaction_status
-    def set_transaction_status(self, transaction_status): self.transaction_status = transaction_status
+    def is_available(self) -> bool:
+        return self.available
 
-# ----------------------------
-# Booking Class
-# ----------------------------
-class Booking:
-    def __init__(self, booking_id, user, ticket, date, payment):
-        self.booking_id = booking_id
-        self.user = user
-        self.ticket = ticket
-        self.date = date
-        self.payment = payment
+    def set_available(self, flag: bool):
+        self.available = flag
 
-    def get_booking_id(self): return self.booking_id
-    def set_booking_id(self, booking_id): self.booking_id = booking_id
-    def get_user(self): return self.user
-    def set_user(self, user): self.user = user
-    def get_ticket(self): return self.ticket
-    def set_ticket(self, ticket): self.ticket = ticket
-    def get_date(self): return self.date
-    def set_date(self, date): self.date = date
-    def get_payment(self): return self.payment
-    def set_payment(self, payment): self.payment = payment
+    def get_event(self) -> Event:
+        return self.event
 
-# ----------------------------
-# GUI Application Class
-# ----------------------------
-class TicketingSystemGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("F1 Ticketing System")
-        self.root.geometry("800x600")
+    def set_event(self, event: Event):
+        self.event = event
 
-        # Load or initialize data stores
-        self.customers = load_data_
+    def get_discount(self) -> 'Discount':
+        return self.discount
+
+    def set_discount(self, discount: 'Discount'):
+        self.discount = discount
+
+    def __str__(self) -> str:
+        return f"Ticket({self.ticket_id}, Type={self.type}, Price={self.price}, Available={self.available})"
+
+
+class SeasonTicket(Ticket):
+    def __init__(self, ticket_id: str, price: float, validity: str, duration: str, perks: str, available: bool = True, event: Event = None, discount: 'Discount' = None):
+        super().__init__(ticket_id, "Season", price, validity, available, event, discount)
+        self.duration = duration
+        self.perks = perks
+
+    def get_duration(self) -> str:
+        return self.duration
+
+    def set_duration(self, duration: str):
+        self.duration = duration
+
+    def get_perks(self) -> str:
+        return self.perks
+
+    def set_perks(self, perks: str):
+        self.perks = perks
+
+    def __str__(self) -> str:
+        return f"SeasonTicket({self.ticket_id}, Duration={self.duration}, Perks={self.perks})"
+
+
+class WeekendPackage(Ticket):
+    def __init__(self, ticket_id: str, price: float, validity: str, includes_days: int, hotel_included: bool, available: bool = True, event: Event = None, discount: 'Discount' = None):
+        super().__init__(ticket_id, "Weekend", price, validity, available, event, discount)
+        self.includes_days = includes_days
+        self.hotel_included = hotel_included
+
+    def get_includes_days(self) -> int:
+        return self.includes_days
+
+    def set_includes_days(self, days: int):
+        self.includes_days = days
+
+    def is_hotel_included(self) -> bool:
+        return self.hotel_included
+
+    def set_hotel_included(self, included: bool):
+        self.hotel_included = included
+
+    def __str__(self) -> str:
+        return f"WeekendPackage({self.ticket_id}, Days={self.includes_days}, HotelIncluded={self.hotel_included})"
+
+
+class SingleRacePass(Ticket):
+    def __init__(self, ticket_id: str, price: float, validity: str, race_location: str, seat_number: str, available: bool = True, event: Event = None, discount: 'Discount' = None):
+        super().__init__(ticket_id, "SingleRacePass", price, validity, available, event, discount)
+        self.race_location = race_location
+        self.seat_number = seat_number
+
+    def get_race_location(self) -> str:
+        return self.race_location
+
+    def set_race_location(self, location: str):
+        self.race_location = location
+
+    def get_seat_number(self) -> str:
+        return self.seat_number
+
+    def set_seat_number(self, seat_number: str):
+        self.seat_number = seat_number
+
+    def __str__(self) -> str:
+        return f"SingleRacePass({self.ticket_id}, Location={self.race_location}, Seat={self.seat_number})"
+
+
+class GroupTicket(Ticket):
+    def __init__(self, ticket_id: str, price: float, validity: str, group_size: int, group_discount: float, available: bool = True, event: Event = None, discount: 'Discount' = None):
+        super().__init__(ticket_id, "Group", price, validity, available, event, discount)
+        self.group_size = group_size
+        self.group_discount = group_discount
+
+    def get_group_size(self) -> int:
+        return self.group_size
+
+    def set_group_size(self, size: int):
+        self.group_size = size
+
+    def get_group_discount(self) -> float:
+        return self.group_discount
+
+    def set_group_discount(self, discount: float):
+        self.group_discount = discount
+
+    def __str__(self) -> str:
+        return f"GroupTicket({self.ticket_id}, Size={self.group_size}, Discount={self.group_discount})"
+
+
+class Discount:
+    def __init__(self, discount_id: str, type_: str, percentage: float, valid_from: datetime, valid_until: datetime):
+        self.discount_id = discount_id
+        self.type = type_
+        self.percentage = percentage
+        self.valid_from = valid_from
+        self.valid_until = valid_until
+
+    def get_discount_id(self) -> str:
+        return self.discount_id
+
+    def set_discount_id(self, discount_id: str):
+        self.discount_id = discount_id
+
+    def get_type(self) -> str:
+        return self.type
+
+    def set_type(self, type_: str):
+        self.type = type_
+
+    def get_percentage(self) -> float:
+        return self.percentage
+
+    def set_percentage(self, percentage: float):
+        self.percentage = percentage
+
+    def get_valid_from(self) -> datetime:
+        return self.valid_from
+
+    def set_valid_from(self, date: datetime):
+        self.valid
